@@ -45,4 +45,8 @@ de qualité croissante :
 - Implémente les transformations et enrichissements métier
 - Tables : `gold.dim_gare`, `gold.dim_date`, `gold.dim_tranche_horaire`, `gold.fait_frequentation`
 
+## Stack technique
 
+- **Databricks** (Unity Catalog) - catalogue `sncf_gc`
+- **PySpark** — transformations distribuées
+- **Delta Lake** — stockage transactionnel
