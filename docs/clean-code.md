@@ -4,7 +4,8 @@
 ## Python
 
 - Ruff: https://docs.astral.sh/ruff/
-- uv:
+- uv: https://docs.astral.sh/uv/
+- pep8: https://peps.python.org/pep-0008/
 
 ## Git
 
