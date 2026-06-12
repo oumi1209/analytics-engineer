@@ -1,0 +1,24 @@
+[project]
+name = "analytics-engineer"
+version = "0.1.0"
+description = "Spark projects about train station analytics"
+readme = "README.md"
+authors = [
+    { name = "Wenkun LI", email = "wenkun.li@gnomondigital.com" },
+    { name = "Oumaïma Bakir", email = "oumaimabakir09@gmail.com" },
+]
+requires-python = ">=3.9"
+dependencies = []
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "pre-commit>=4.3.0",
+    "ruff>=0.15.17",
+]
+
+[tool.ruff]
+extend-exclude = ["notebooks"]
