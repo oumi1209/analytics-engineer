@@ -19,6 +19,12 @@ dev = [
     "pre-commit>=4.3.0",
     "ruff>=0.15.17",
 ]
+[tool.hatch.build.targets.wheel]
+packages = ["src/analytics_engineer"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+
 
 [tool.ruff]
 extend-exclude = ["notebooks"]
