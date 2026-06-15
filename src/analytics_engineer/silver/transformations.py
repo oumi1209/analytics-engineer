@@ -1,4 +1,4 @@
-from pyspark.sql import DataFrame
+from pyspark.sql import DataFrame, SparkSession
 import pyspark.sql.functions as F
 
 VALID_SEGMENTS = {"A", "B", "C"}  # à ajuster selon tes vraies valeurs
@@ -40,3 +40,20 @@ def enrich_frequentation(
             how="left",
         )
     )
+
+def run_silver(spark: SparkSession) -> None:
+
+    df_silver = enrich_frequentation(
+        validate_frequentation(spark.table("sncf_gc.bronze.frequentation")),
+        spark.table("sncf_gc.bronze.jours_feries"),
+        spark.table("sncf_gc.bronze.population_communes"),
+    )
+
+    (
+        df_silver.write
+        .format("delta")
+        .mode("overwrite")
+        .option("overwriteSchema", "true")
+        .saveAsTable("sncf_gc.silver.frequentation_clean")
+    )
+

@@ -1,5 +1,5 @@
 import pyspark.sql.functions as F
-from pyspark.sql import DataFrame
+from pyspark.sql import DataFrame, SparkSession
 '''
 def build_dim_date(df: DataFrame) -> DataFrame:
     return (
@@ -16,9 +16,6 @@ def build_dim_date(df: DataFrame) -> DataFrame:
     )
 
 '''
-
-from pyspark.sql import DataFrame, SparkSession
-from pyspark.sql import functions as F
 
 TRANCHE_HORAIRE_REF = [
     (0,  "00h-03h", "Nuit",             "Nuit"),
@@ -83,3 +80,27 @@ def build_fait_frequentation(df_silver: DataFrame, dim_tranche: DataFrame) -> Da
         .withColumn("id_date", F.date_format("date", "yyyyMMdd").cast("int"))
         .select("gare_id", "id_date", "id_tranche", "nb_voyageurs", "nb_non_voyageurs")
     )
+
+def write_delta_table(df: DataFrame, table_name: str) -> None:
+    (
+        df.write
+        .format("delta")
+        .mode("overwrite")
+        .option("overwriteSchema", "true")
+        .saveAsTable(table_name)
+    )
+
+
+def run_gold(spark: SparkSession) -> None:
+
+    df_silver = spark.read.table("silver.frequentation_clean")
+
+    dim_gare = build_dim_gare(df_silver)
+    dim_date = build_dim_date(df_silver)
+    dim_tranche_horaire = build_dim_tranche_horaire(spark)
+    fait = build_fait_frequentation(df_silver, dim_tranche_horaire)
+
+    write_delta_table(dim_gare, "sncf_gc.gold.dim_gare")
+    write_delta_table(dim_date, "sncf_gc.gold.dim_date")
+    write_delta_table(dim_tranche_horaire, "sncf_gc.gold.dim_tranche_horaire")
+    write_delta_table(fait, "sncf_gc.gold.fait_frequentation")
