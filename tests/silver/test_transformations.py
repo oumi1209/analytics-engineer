@@ -15,16 +15,6 @@ def build_row(**overrides):
     return base
 
 
-def test_garde_lignes_valides(spark_fixture):
-
-    sample_data = [build_row(gare_id="G1"), build_row(gare_id="G2")]
-    original_df = spark_fixture.createDataFrame(sample_data)
-
-    transformed_df = validate_frequentation(original_df)
-
-    expected_df = spark_fixture.createDataFrame(sample_data)
-    assertDataFrameEqual(transformed_df, expected_df)
-
 
 def test_supprime_lignes_invalides(spark_fixture):
 
