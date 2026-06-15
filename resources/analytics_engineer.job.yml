@@ -1,0 +1,63 @@
+# Job definition for the Medallion pipeline.
+# This is WHERE compute sizing and runtime parameters are stored — in the bundle,
+# not in config.yaml (which holds business config: catalog + landing paths) and not
+# in the Python code.
+
+resources:
+  jobs:
+    medallion_pipeline:
+      name: medallion-pipeline
+
+      # --- COMPUTE: "how many CPUs" lives here ---------------------------------
+      # node_type_id  = CPU/RAM per node (the node size)
+      # num_workers   = how many worker nodes  → total CPUs = num_workers × node CPUs
+      # (use `autoscale` instead of num_workers to scale between a min and max)
+      job_clusters:
+        - job_cluster_key: pipeline_cluster
+          new_cluster:
+            spark_version: ${var.spark_version}
+            node_type_id: ${var.node_type_id}
+            num_workers: ${var.num_workers}
+            data_security_mode: SINGLE_USER   # required to write Unity Catalog (sncf_gc)
+            # autoscale:                       # alternative to num_workers
+            #   min_workers: 1
+            #   max_workers: 4
+
+      # --- RUNTIME PARAMETERS: the --stage arg lives here ----------------------
+      # One task per medallion layer, chained. Each calls the installed console
+      # script (`[project.scripts]` in pyproject.toml) with its stage parameter.
+      tasks:
+        - task_key: bronze
+          job_cluster_key: pipeline_cluster
+          python_wheel_task:
+            package_name: analytics_engineer
+            entry_point: analytics-engineer
+            parameters: ["--stage", "bronze"]
+          libraries:
+            - whl: ./dist/*.whl
+
+        - task_key: silver
+          depends_on:
+            - task_key: bronze
+          job_cluster_key: pipeline_cluster
+          python_wheel_task:
+            package_name: analytics_engineer
+            entry_point: analytics-engineer
+            parameters: ["--stage", "silver"]
+          libraries:
+            - whl: ./dist/*.whl
+
+        - task_key: gold
+          depends_on:
+            - task_key: silver
+          job_cluster_key: pipeline_cluster
+          python_wheel_task:
+            package_name: analytics_engineer
+            entry_point: analytics-engineer
+            parameters: ["--stage", "gold"]
+          libraries:
+            - whl: ./dist/*.whl
+
+      # Serverless alternative: drop `job_clusters` + `libraries`, add a top-level
+      # `environments:` block listing the wheel, and give each task an
+      # `environment_key`. With serverless you don't size CPUs — Databricks does.
