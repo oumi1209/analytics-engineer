@@ -1,45 +1,35 @@
-# Declarative Automation Bundle definition for analytics-engineer.
-# See https://docs.databricks.com/dev-tools/bundles/index.html for documentation.
-
 bundle:
   name: analytics-engineer
 
-# Job/compute definitions live in their own files under resources/.
 include:
   - resources/*.yml
 
-# Build the wheel so the job's python_wheel_task can install it.
+sync:
+  include:
+    - src/**
+    - resources/**
+    - notebooks/**
+    - pyproject.toml
+    - uv.lock
+  exclude:
+    - ".git/**"
+    - "__pycache__/**"
+    - ".databricks/**"
+    - ".vscode/**"
+    - "dist/**"
+
 artifacts:
   analytics_engineer_wheel:
     type: whl
     build: uv build --wheel
     path: .
 
-# Tunable knobs. Defaults below; each target can override them (see dev/prod).
-variables:
-  spark_version:
-    description: Databricks Runtime version for the job cluster.
-    default: 15.4.x-scala2.12
-  node_type_id:
-    description: Cluster node type — defines CPU/RAM per node.
-    default: m5d.large           # AWS; ~2 vCPU / 8 GB per node
-  num_workers:
-    description: Number of worker nodes (total CPUs = num_workers × node CPUs).
-    default: 2
-
 targets:
   dev:
     mode: development
     default: true
+
     workspace:
       host: https://dbc-e30aefd6-ab32.cloud.databricks.com
-    variables:
-      num_workers: 1             # smaller / cheaper in dev
-
-  # prod:
-  #   mode: production
-  #   workspace:
-  #     host: https://dbc-e30aefd6-ab32.cloud.databricks.com
-  #   variables:
-  #     node_type_id: m5d.2xlarge   # bigger nodes
-  #     num_workers: 8              # more nodes
+      root_path: ~/.bundle/analytics-engineer/dev_clean_3
+      artifact_path: /Volumes/sncf_gc/bronze/landing/artifacts/${workspace.current_user.short_name}
