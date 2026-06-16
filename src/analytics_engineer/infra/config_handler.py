@@ -9,7 +9,6 @@ drift out of sync.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from functools import lru_cache
 from pathlib import Path
 
 import yaml
@@ -47,7 +46,18 @@ def load_config(path: str | Path = DEFAULT_CONFIG_PATH) -> Config:
     )
 
 
-@lru_cache(maxsize=1)
+_config: Config | None = None
+
+
 def get_config() -> Config:
-    """Process-wide config, loaded once from the default ``config.yaml``."""
-    return load_config()
+    """Process-wide config singleton. Call set_config() first when a custom path is needed."""
+    global _config
+    if _config is None:
+        _config = load_config()
+    return _config
+
+
+def set_config(config: Config) -> None:
+    """Seed the process-wide singleton (called from main before stage functions run)."""
+    global _config
+    _config = config

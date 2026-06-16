@@ -10,14 +10,13 @@ import argparse
 import logging
 
 from analytics_engineer.data_sources import run_bronze
-from analytics_engineer.infra.config_handler import get_config
+from analytics_engineer.infra.config_handler import get_config, load_config, set_config
 from analytics_engineer.infra.logging import configure_logging
 from analytics_engineer.infra.spark import SparkSessionHandler, get_spark
 from analytics_engineer.products.frequentation import run_gold, run_silver
 
 logger = logging.getLogger(__name__)
 
-# Insertion order is the execution order for ``--stage all``.
 STAGES = {
     "bronze": run_bronze,
     "silver": run_silver,
@@ -25,9 +24,11 @@ STAGES = {
 }
 
 
-def run(stage: str = "all") -> None:
+def run(stage: str = "all", config_path: str | None = None) -> None:
     configure_logging()
-    SparkSessionHandler.configure(get_config().app_name)
+    config = load_config(config_path) if config_path else get_config()
+    set_config(config)
+    SparkSessionHandler.configure(config.app_name)
     spark = get_spark()
     try:
         for name in STAGES if stage == "all" else [stage]:
@@ -45,7 +46,13 @@ def main() -> None:
         default="all",
         help="Stage to run (default: all, in Bronze→Silver→Gold order).",
     )
-    run(parser.parse_args().stage)
+    parser.add_argument(
+        "--config",
+        default=None,
+        help="Absolute path to config.yaml on the Databricks workspace.",
+    )
+    args = parser.parse_args()
+    run(args.stage, config_path=args.config)
 
 
 if __name__ == "__main__":

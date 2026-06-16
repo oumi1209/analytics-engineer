@@ -6,8 +6,6 @@ resources:
     medallion_pipeline:
       name: medallion-pipeline
 
-      # Serverless: list the wheel as a pip dependency.
-      # No job_clusters, no node_type_id / num_workers — Databricks does that.
       environments:
         - environment_key: pipeline_env
           spec:
@@ -21,7 +19,11 @@ resources:
           python_wheel_task:
             package_name: analytics_engineer
             entry_point: analytics-engineer
-            parameters: ["--stage", "bronze"]
+            parameters:
+              - "--stage"
+              - "bronze"
+              - "--config"
+              - "${workspace.root_path}/files/config.yaml"
 
         - task_key: silver
           depends_on:
@@ -30,8 +32,11 @@ resources:
           python_wheel_task:
             package_name: analytics_engineer
             entry_point: analytics-engineer
-            parameters: ["--stage", "silver"]
-
+            parameters:
+              - "--stage"
+              - "silver"
+              - "--config"
+              - "${workspace.root_path}/files/config.yaml"
         - task_key: gold
           depends_on:
             - task_key: silver
@@ -39,4 +44,8 @@ resources:
           python_wheel_task:
             package_name: analytics_engineer
             entry_point: analytics-engineer
-            parameters: ["--stage", "gold"]
+            parameters:
+              - "--stage"
+              - "gold"
+              - "--config"
+              - "${workspace.root_path}/files/config.yaml"

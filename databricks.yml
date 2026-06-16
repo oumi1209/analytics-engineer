@@ -11,6 +11,7 @@ sync:
     - notebooks/**
     - pyproject.toml
     - uv.lock
+    - config.yaml
   exclude:
     - ".git/**"
     - "__pycache__/**"
