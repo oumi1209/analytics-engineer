@@ -1,0 +1,13 @@
+# Environment-specific configuration for the Medallion pipeline.
+# Table short-names live in code (they are part of the data model); only the
+# things that change between environments (catalog, landing volume) live here.
+
+app_name: analytics-engineer
+
+# Unity Catalog the pipeline reads from / writes to.
+catalog: sncf_gc
+
+# Raw files dropped in the landing volume, read by the Bronze handlers.
+landing:
+  frequentation: /Volumes/sncf_gc/bronze/landing/frequentation.csv
+  jours_feries: /Volumes/sncf_gc/bronze/landing/jours_feries.csv

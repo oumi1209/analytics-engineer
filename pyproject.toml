@@ -8,17 +8,39 @@ authors = [
     { name = "Oumaïma Bakir", email = "oumaimabakir09@gmail.com" },
 ]
 requires-python = ">=3.9"
-dependencies = []
+# Runtime dependencies. PySpark is intentionally NOT listed: on Databricks it is
+# provided by the runtime, and for local dev `databricks-connect` provides its own
+# (a separately-installed pyspark would conflict). It lives in the dev group below
+# for local unit tests. So the only third-party runtime import is PyYAML.
+dependencies = [
+    "pyyaml>=6.0",   # infra/config_handler.py loads config.yaml
+]
+
+[project.scripts]
+# Run the pipeline as an installed command, e.g. `analytics-engineer --stage all`.
+analytics-engineer = "analytics_engineer.main:main"
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [dependency-groups]
+# Local-dev only. pyspark here runs the unit tests on a local SparkSession; on
+# Databricks the runtime provides it. databricks-connect (for remote local runs) is
+# installed separately, on demand, since it conflicts with pyspark.
 dev = [
     "pre-commit>=4.3.0",
+    "pyspark>=4.0.3",
+    "pytest>=8.4.2",
     "ruff>=0.15.17",
 ]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/analytics_engineer"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+
 
 [tool.ruff]
 extend-exclude = ["notebooks"]

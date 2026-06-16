@@ -1,5 +1,7 @@
 # Clean code best practices
 
+> See [clean-code-principles.md](clean-code-principles.md) for the principles applied
+> in this project, with concrete before/after examples from the codebase.
 
 ## Python
 

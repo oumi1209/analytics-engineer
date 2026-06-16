@@ -1,0 +1,42 @@
+# Job definition for the Medallion pipeline (serverless compute).
+# Databricks serverless manages compute automatically — no cluster sizing needed.
+
+resources:
+  jobs:
+    medallion_pipeline:
+      name: medallion-pipeline
+
+      # Serverless: list the wheel as a pip dependency.
+      # No job_clusters, no node_type_id / num_workers — Databricks does that.
+      environments:
+        - environment_key: pipeline_env
+          spec:
+            environment_version: "4"
+            dependencies:
+              - ../dist/*.whl
+
+      tasks:
+        - task_key: bronze
+          environment_key: pipeline_env
+          python_wheel_task:
+            package_name: analytics_engineer
+            entry_point: analytics-engineer
+            parameters: ["--stage", "bronze"]
+
+        - task_key: silver
+          depends_on:
+            - task_key: bronze
+          environment_key: pipeline_env
+          python_wheel_task:
+            package_name: analytics_engineer
+            entry_point: analytics-engineer
+            parameters: ["--stage", "silver"]
+
+        - task_key: gold
+          depends_on:
+            - task_key: silver
+          environment_key: pipeline_env
+          python_wheel_task:
+            package_name: analytics_engineer
+            entry_point: analytics-engineer
+            parameters: ["--stage", "gold"]
