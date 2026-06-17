@@ -11,3 +11,5 @@ catalog: sncf_gc
 landing:
   frequentation: /Volumes/sncf_gc/bronze/landing/frequentation.csv
   jours_feries: /Volumes/sncf_gc/bronze/landing/jours_feries.csv
+  population:    /Volumes/sncf_gc/bronze/landing/population_communes.csv 
+

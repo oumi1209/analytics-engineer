@@ -1,25 +1,25 @@
 from __future__ import annotations
 
-from analytics_engineer.data_sources.population.model import (
-    POPULATION_COMMUNES,
-    PopulationCommune,
-)
+import pyspark.sql.functions as F
+from pyspark.sql.types import IntegerType
+
+from analytics_engineer.data_sources.population.model import PopulationCommune
 from analytics_engineer.infra.data_source_handler import BaseDataSourceHandler
 from analytics_engineer.infra.dataset import Dataset
 
 
 class PopulationHandler(BaseDataSourceHandler):
-    """Load the INSEE population seed into ``bronze.population_communes``.
-
-    The seed is built straight from typed dataclasses via ``Dataset.create``, so
-    the table schema is the one derived from :class:`PopulationCommune`.
-    """
+    """Load the INSEE population CSV into ``bronze.population_communes``."""
 
     model = PopulationCommune
     table_name = "population_communes"
 
     def read(self) -> Dataset[PopulationCommune]:
-        return Dataset.create(self.spark, self.model, POPULATION_COMMUNES)
+        raw = self.spark.read.option("header", True).csv(
+            self.config.landing("population")
+        )
+        return Dataset(raw, self.model)
 
     def clean(self, raw: Dataset[PopulationCommune]) -> Dataset[PopulationCommune]:
-        return raw  # seed reference data is already typed and clean
+        cleaned = raw.df.withColumn("population", F.col("population").cast(IntegerType()))
+        return Dataset(cleaned, self.model)
